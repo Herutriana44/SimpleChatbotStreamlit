@@ -1,18 +1,14 @@
-import telebot
+import streamlit as st
 import numpy as np
 import random
 import json
 import pickle
 import nltk
-nltk.download('punkt')
-nltk.download('punkt_tab')
 from nltk.stem.lancaster import LancasterStemmer
 from tensorflow import keras
 import os
-
-# Replace with your Telegram Bot API token
-API_TOKEN = '7592776157:AAHmtYlLe9D8zBx0Snc0kHjr5S-GHYGhIag'
-bot = telebot.TeleBot(API_TOKEN)
+nltk.download('punkt')
+nltk.download('punkt_tab')
 
 # Load necessary data
 stemmer = LancasterStemmer()
@@ -68,11 +64,20 @@ def response(sentence):
                 return random.choice(intent['responses'])
     return "Maaf, saya tidak mengerti apa yang Anda katakan."
 
-# Telegram bot message handler
-@bot.message_handler(func=lambda message: True)
-def handle_message(message):
-    user_input = message.text
-    bot_response = response(user_input)
-    bot.send_message(message.chat.id, bot_response)
+# Streamlit UI
+st.title("Chatbot AI")
+st.write("Interaksi dengan chatbot berbasis AI")
 
-bot.polling()
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
+
+# Input pengguna
+user_input = st.text_input("Anda: ", "")
+if st.button("Kirim") and user_input:
+    bot_response = response(user_input)
+    st.session_state.chat_history.append(("Anda", user_input))
+    st.session_state.chat_history.append(("Bot", bot_response))
+
+# Tampilkan riwayat percakapan dalam text area
+chat_text = "\n".join([f"{sender}: {message}" for sender, message in st.session_state.chat_history])
+st.text_area("Percakapan", chat_text, height=300, disabled=True)
